@@ -31,11 +31,18 @@ class SkillsAnimationComponent extends RiveComponent with TapCallbacks {
   late final List<SimpleAnimation> _animations;
   late final List<String> _animationNames = [
     'stone to scissors',
-    'scissors to bag',
+    'closed scissors to bag',
     'bag to stone',
   ];
-  // currentAnimation() => _animations[_currentIndex];
-  SimpleAnimation get currentAnimation => _animations[_currentIndex];
+
+  SimpleAnimation scissoring = SimpleAnimation('scissoring', autoplay: false);
+
+  SimpleAnimation get currentAnimation =>
+      _animations[(_currentIndex) % _animations.length];
+  SimpleAnimation get nextAnimation =>
+      _animations[(_currentIndex + 1) % _animations.length];
+  SimpleAnimation get previousAnimation =>
+      _animations[(_currentIndex - 1) % _animations.length];
 
   @override
   void onGameResize(Vector2 size) {
@@ -45,26 +52,34 @@ class SkillsAnimationComponent extends RiveComponent with TapCallbacks {
 
   @override
   void onLoad() {
-    // Create all animations from the names list
     _animations =
         _animationNames
             .map((name) => SimpleAnimation(name, autoplay: false))
             .toList();
 
-    // Add the first animation controller to the artboard
-    // artboard.addController(_animations[_currentIndex]);
-
     for (final animation in _animations) {
       artboard.addController(animation);
     }
+    // Add the scissoring animation to the artboard
+    artboard.addController(scissoring);
   }
 
   @override
   void onTapDown(TapDownEvent event) {
+    previousAnimation.reset();
+
     _currentIndex = (_currentIndex + 1) % _animations.length;
 
     currentAnimation.isActive = true;
+  }
 
-    print('Animation: ${_animationNames[_currentIndex]}');
+  @override
+  void onLongTapDown(TapDownEvent event) {
+    // _animations.first.reset();
+    // _animations.first.isActive = true;
+    // _animations.first.isActive = false;
+    // currentAnimation.isActive = false;
+    // _animations.first.isActive = false;
+    scissoring.isActive = !scissoring.isActive;
   }
 }
