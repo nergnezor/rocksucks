@@ -24,11 +24,9 @@ enum AnimationState { scissors, bag, stone }
 class SkillsAnimationComponent extends RiveComponent with TapCallbacks {
   SkillsAnimationComponent(Artboard artboard) : super(artboard: artboard);
 
-  // Current animation index
   int _currentIndex = 0;
 
-  // Animation data storage
-  late final List<SimpleAnimation> _animations;
+  late final List<SimpleAnimation> shapes;
   late final List<String> _animationNames = [
     'stone to scissors',
     'closed scissors to bag',
@@ -38,11 +36,11 @@ class SkillsAnimationComponent extends RiveComponent with TapCallbacks {
   SimpleAnimation scissoring = SimpleAnimation('scissoring', autoplay: false);
 
   SimpleAnimation get currentAnimation =>
-      _animations[(_currentIndex) % _animations.length];
+      shapes[(_currentIndex) % shapes.length];
   SimpleAnimation get nextAnimation =>
-      _animations[(_currentIndex + 1) % _animations.length];
+      shapes[(_currentIndex + 1) % shapes.length];
   SimpleAnimation get previousAnimation =>
-      _animations[(_currentIndex - 1) % _animations.length];
+      shapes[(_currentIndex - 1) % shapes.length];
 
   @override
   void onGameResize(Vector2 size) {
@@ -52,34 +50,27 @@ class SkillsAnimationComponent extends RiveComponent with TapCallbacks {
 
   @override
   void onLoad() {
-    _animations =
+    shapes =
         _animationNames
             .map((name) => SimpleAnimation(name, autoplay: false))
             .toList();
 
-    for (final animation in _animations) {
-      artboard.addController(animation);
-    }
-    // Add the scissoring animation to the artboard
-    artboard.addController(scissoring);
+    [...shapes, scissoring].forEach(artboard.addController);
   }
 
   @override
   void onTapDown(TapDownEvent event) {
+    cycleShape();
+  }
+
+  void cycleShape() {
     previousAnimation.reset();
-
-    _currentIndex = (_currentIndex + 1) % _animations.length;
-
+    _currentIndex = (_currentIndex + 1) % shapes.length;
     currentAnimation.isActive = true;
   }
 
   @override
   void onLongTapDown(TapDownEvent event) {
-    // _animations.first.reset();
-    // _animations.first.isActive = true;
-    // _animations.first.isActive = false;
-    // currentAnimation.isActive = false;
-    // _animations.first.isActive = false;
     scissoring.isActive = !scissoring.isActive;
   }
 }
