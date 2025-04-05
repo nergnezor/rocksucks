@@ -18,10 +18,24 @@ class RiveExampleGame extends FlameGame {
   }
 }
 
+// Enum to track the current animation state
+enum AnimationState { scissors, bag, stone }
+
 class SkillsAnimationComponent extends RiveComponent with TapCallbacks {
   SkillsAnimationComponent(Artboard artboard) : super(artboard: artboard);
 
-  SMIInput<double>? _levelInput;
+  // Current animation index
+  int _currentIndex = 0;
+
+  // Animation data storage
+  late final List<SimpleAnimation> _animations;
+  late final List<String> _animationNames = [
+    'stone to scissors',
+    'scissors to bag',
+    'bag to stone',
+  ];
+  // currentAnimation() => _animations[_currentIndex];
+  SimpleAnimation get currentAnimation => _animations[_currentIndex];
 
   @override
   void onGameResize(Vector2 size) {
@@ -31,23 +45,26 @@ class SkillsAnimationComponent extends RiveComponent with TapCallbacks {
 
   @override
   void onLoad() {
-    final controller = StateMachineController.fromArtboard(
-      artboard,
-      "State Machine 1",
-    );
-    if (controller != null) {
-      artboard.addController(controller);
-      _levelInput = controller.findInput<double>('Level');
-      _levelInput?.value = 0;
+    // Create all animations from the names list
+    _animations =
+        _animationNames
+            .map((name) => SimpleAnimation(name, autoplay: false))
+            .toList();
+
+    // Add the first animation controller to the artboard
+    // artboard.addController(_animations[_currentIndex]);
+
+    for (final animation in _animations) {
+      artboard.addController(animation);
     }
   }
 
   @override
   void onTapDown(TapDownEvent event) {
-    final levelInput = _levelInput;
-    if (levelInput == null) {
-      return;
-    }
-    levelInput.value = (levelInput.value + 1) % 3;
+    _currentIndex = (_currentIndex + 1) % _animations.length;
+
+    currentAnimation.isActive = true;
+
+    print('Animation: ${_animationNames[_currentIndex]}');
   }
 }
