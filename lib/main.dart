@@ -30,7 +30,12 @@ class RiveExampleGame extends FlameGame {
   @override
   Future<void> onLoad() async {
     // Initialize the fragment shader
-    fragmentShader = shaderProgram.fragmentShader();
+    try {
+      fragmentShader = shaderProgram.fragmentShader();
+      print('Shader loaded successfully.');
+    } catch (e) {
+      print('Error loading shader: $e');
+    }
 
     // Initial uniform values
     updateShaderUniforms();
@@ -63,7 +68,6 @@ class RiveExampleGame extends FlameGame {
     super.update(dt);
     // Update the time uniform in the shader
     time += dt;
-    fragmentShader.setFloat(2, time);
   }
 }
 
@@ -114,52 +118,45 @@ class SkillsAnimationComponent extends RiveComponent with TapCallbacks {
   void render(Canvas canvas) {
     if (shader != null) {
       try {
-        // First, save the canvas state
+        // Save the canvas state
         canvas.save();
 
-        // Create a recorder for the main artboard rendering
+        // First, render the Rive animation to a separate image that we can use as a texture
         final recorder = ui.PictureRecorder();
-        final layerCanvas = Canvas(recorder);
-
-        // Normal Rive rendering to capture the entire artboard
-        super.render(layerCanvas);
+        final tempCanvas = Canvas(recorder);
+        super.render(tempCanvas);
         final picture = recorder.endRecording();
 
-        // Create a new recorder just for the shape mask
-        final maskRecorder = ui.PictureRecorder();
-        final maskCanvas = Canvas(maskRecorder);
+        // Convert to an image so we can use it as a texture input for the shader
+        final image = picture.toImageSync(size.x.ceil(), size.y.ceil());
 
-        // Get bounds of the artboard for sizing
-        final bounds = Rect.fromLTWH(0, 0, size.x, size.y);
+        // Clear shader uniform values from any previous frames
+        shader!.setFloat(0, size.x); // uResolution.x
+        shader!.setFloat(1, size.y); // uResolution.y
 
-        // Render the entire artboard
-        final fullImage = picture.toImageSync(size.x.ceil(), size.y.ceil());
+        // Explicitly set the sampler with proper name
+        shader!.setImageSampler(0, image);
 
-        // Apply shader only to the visible parts by using a blend mode
-        final shaderInstance = this.shader!;
-        shaderInstance.setImageSampler(0, fullImage);
+        // Create a paint with the shader
+        final paint = Paint()..shader = shader!;
 
-        // Set up paint with the shader
-        final paint = Paint()..shader = shaderInstance;
-
-        // First draw the normal image
-        canvas.drawImage(fullImage, Offset.zero, Paint());
-
-        // Now overlay the shader only on non-transparent parts
-        // This way, only the visible shapes get the shader
-        paint.blendMode = BlendMode.srcIn;
-        canvas.drawRect(bounds, paint);
+        // Draw a rectangle with the shader to the main canvas
+        canvas.drawRect(Rect.fromLTWH(0, 0, size.x, size.y), paint);
 
         // Clean up resources
-        fullImage.dispose();
+        image.dispose();
+
+        // Restore the canvas state
         canvas.restore();
+
+        print('Shader applied with image sampler');
       } catch (e) {
-        print('Shader error: $e');
+        print('Error applying shader: $e');
         // Fallback to regular rendering
         super.render(canvas);
       }
     } else {
-      // Fall back to normal rendering if shader is not available
+      // Regular rendering
       super.render(canvas);
     }
   }

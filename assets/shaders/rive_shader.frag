@@ -6,32 +6,34 @@ precision highp float;
 
 uniform vec2 uResolution;
 uniform float uTime;
-uniform sampler2D uTexture;  // Input texture from Rive
+uniform sampler2D input_texture;
 
 out vec4 fragColor;
 
 void main() {
   vec2 uv = FlutterFragCoord().xy / uResolution;
-  
-  // Original color from the Rive artboard - using texture() instead of texture2D()
-  vec4 color = texture(uTexture, uv);
 
-  // Return black if the current pixel is dark
-  if (color.r < 0.1 && color.g < 0.1 && color.b < 0.1) {
-    fragColor = vec4(0.0, 0.0, 0.0, 1.0);
-    return;
-  }
-  
-  // Apply a wave effect based on time
-  float wave = sin(uv.y * 10.0 + uTime * 2.0) * 0.5 + 0.5;
-  
-  // Mix the original color with a colorful gradient
-  vec3 shaderColor = mix(
-    vec3(0.2, 0.6, 1.0),
-    vec3(1.0, 0.4, 0.7),
-    wave
-  );
-  
-  // Keep the original alpha to preserve transparency
-  fragColor = vec4(mix(color.rgb, shaderColor, 0.4), color.a);
+  // Sample the texture at the current UV coordinates
+  vec4 color = texture(input_texture, uv);
+
+  // Edge detection: compare the alpha of neighboring pixels
+  float pixelSize = 1.0 / min(uResolution.x, uResolution.y);
+  vec2 offset = vec2(pixelSize);
+
+  float alpha = color.a;
+  float alphaN = texture(input_texture, uv + vec2(0.0, offset.y)).a;
+  float alphaE = texture(input_texture, uv + vec2(offset.x, 0.0)).a;
+  float alphaS = texture(input_texture, uv + vec2(0.0, -offset.y)).a;
+  float alphaW = texture(input_texture, uv + vec2(-offset.x, 0.0)).a;
+
+  // Determine if the current pixel is an edge
+  float isEdge = step(0.1, alpha) * (1.0 - step(0.1, alphaN) * step(0.1, alphaE) * step(0.1, alphaS) * step(0.1, alphaW));
+
+  // Apply a white stroke to edges
+  vec3 strokeColor = vec3(1.0, 1.0, 1.0);
+
+  // Mix the original color with the stroke color
+  vec3 finalColor = mix(color.rgb, strokeColor, isEdge);
+
+  fragColor = vec4(finalColor, color.a);
 }
