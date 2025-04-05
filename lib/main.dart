@@ -148,8 +148,6 @@ class SkillsAnimationComponent extends RiveComponent with TapCallbacks {
 
         // Restore the canvas state
         canvas.restore();
-
-        print('Shader applied with image sampler');
       } catch (e) {
         print('Error applying shader: $e');
         // Fallback to regular rendering

@@ -21,19 +21,27 @@ void main() {
   vec2 offset = vec2(pixelSize);
 
   float alpha = color.a;
-  float alphaN = texture(input_texture, uv + vec2(0.0, offset.y)).a;
-  float alphaE = texture(input_texture, uv + vec2(offset.x, 0.0)).a;
-  float alphaS = texture(input_texture, uv + vec2(0.0, -offset.y)).a;
-  float alphaW = texture(input_texture, uv + vec2(-offset.x, 0.0)).a;
+  float edge = 0.0;
 
-  // Determine if the current pixel is an edge
-  float isEdge = step(0.1, alpha) * (1.0 - step(0.1, alphaN) * step(0.1, alphaE) * step(0.1, alphaS) * step(0.1, alphaW));
+const int stroke = 1; // Stroke width
+  // Check a stroke-pixel radius for center-aligned edges
+  for (int x = -stroke; x <= stroke; x++) {
+    for (int y = -stroke; y <= stroke; y++) {
+      float neighborAlpha = texture(input_texture, uv + vec2(x, y) * offset).a;
+      if (abs(alpha - neighborAlpha) > 0.1) {
+        edge = 1.0;
+      }
+    }
+  }
 
-  // Apply a white stroke to edges
+  // Antialiasing: smooth the edges using a gradient
+  float smoothEdge = smoothstep(0.0, 1.0, edge);
+
+  // Apply a white stroke to center-aligned edges
   vec3 strokeColor = vec3(1.0, 1.0, 1.0);
 
   // Mix the original color with the stroke color
-  vec3 finalColor = mix(color.rgb, strokeColor, isEdge);
+  vec3 finalColor = mix(color.rgb, strokeColor, smoothEdge);
 
-  fragColor = vec4(finalColor, color.a);
+  fragColor = vec4(finalColor, max(color.a, smoothEdge));
 }
