@@ -19,6 +19,22 @@ class Enemy extends Player {
 
   double hSpeed = 0.0;
   double vSpeed = 100.0;
+  double baseSize = 100.0; // Base size to scale from
+
+  // Calculate scale factor based on y position
+  void updatePerspectiveScale() {
+    // Get the screen height for calculation
+    final screenHeight = gameRef.size.y;
+
+    // Calculate scale factor based on y position (0.7 to 1.5 range)
+    // The deeper the enemy is in the scene, the larger it should appear
+    double scaleFactor = 0.7 + (position.y / screenHeight) * 0.8;
+
+    // Apply scale while keeping vertical flip (-1)
+    scale.x = scaleFactor;
+    scale.y = -scaleFactor; // Maintain vertical flip with new scale
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
@@ -45,10 +61,16 @@ class Enemy extends Player {
       case 'bag to stone':
         hSpeed = 0.0;
         position.y += vSpeed * dt; // Adjust the speed as needed
-
         break;
     }
-    if (currentAnimation.animationName == 'closed scissors to bag') {}
+
+    // Apply horizontal movement if there is any
+    if (hSpeed != 0) {
+      position.x += hSpeed * dt;
+    }
+
+    // Update scale based on perspective
+    updatePerspectiveScale();
   }
 }
 
