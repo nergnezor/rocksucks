@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flame/game.dart';
 import 'package:flame_rive/flame_rive.dart';
@@ -86,8 +87,8 @@ class RockGame extends FlameGame {
   }
 
   @override
-  void onGameResize(Vector2 gameSize) {
-    super.onGameResize(gameSize);
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
     if (isLoaded) {
       updateShaderUniforms();
     }
@@ -113,6 +114,7 @@ class RockGame extends FlameGame {
     ui.FragmentShader shader,
     RockGame gameRef,
   ) async {
+    final random = Random();
     for (int j = 0; j < count; j++) {
       // Create a new artboard for each enemy
       final enemyArtboard = await loadArtboard(
@@ -120,12 +122,19 @@ class RockGame extends FlameGame {
         artboardName: 'Artboard',
       );
 
+      final w = 100.0; // Width of the enemy
+      final randomOffsetX =
+          random.nextDouble() * 50 - 25; // Random offset between -25 and 25
+      final randomOffsetY =
+          random.nextDouble() * 50 - 25; // Random offset between -25 and 25
+
       final enemy =
           Enemy(enemyArtboard, shader, gameRef)
-            ..size = Vector2(200, 200) // Set the size of the enemy
+            ..size = Vector2(w, w) // Set the size of the enemy
             ..position = Vector2(
-              (size.x - 200) * (j + 1) / (count + 1), // Center horizontally
-              200, // Align to the bottom
+              (size.x - w) * (j + 1) / (count + 1) +
+                  randomOffsetX, // Center horizontally with offset
+              w + randomOffsetY, // Align to the bottom with offset
             );
 
       add(enemy);

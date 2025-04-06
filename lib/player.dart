@@ -7,13 +7,15 @@ import 'package:flutter/material.dart';
 import 'package:rocksucks/main.dart';
 
 class Enemy extends Player {
-  Enemy(Artboard artboard, ui.FragmentShader? shader, RockGame gameRef)
-    : super(artboard, shader, gameRef) {
-    // Set the initial position of the enemy
-    position = Vector2(
-      gameRef.size.x - size.x - 20,
-      gameRef.size.y - size.y - 20,
-    );
+  Enemy(super.artboard, super.shader, super.gameRef) {
+    // // Set the initial position of the enemy
+    // position = Vector2(
+    //   gameRef.size.x - size.x - 20,
+    //   gameRef.size.y - size.y - 20,
+    // );
+    // angle = math.pi; // Rotate the enemy to face downwards
+    scale.y = -1; // Flip the enemy vertically
+    // artboard.
   }
   // late final List<String> _animationNames = [
   //   'stone to scissors',
@@ -27,18 +29,25 @@ class Enemy extends Player {
     _currentIndex = 1; // Start with the "bag" animation
     currentAnimation.isActive = true;
 
-    // TODO: Flip vertically to make a parachute of the bag
+    // TODO: Flip vertically to make a parachute of the bags
   }
 
-  // @override
-  // void update(double dt) {
-  //   super.update(dt);
-  //   time_ += dt;
-  //   if (time_ > 1.0) {
-  //     time_ = 0.0;
-  //     cycleShape();
-  //   }
-  // }
+  @override
+  void update(double dt) {
+    super.update(dt);
+
+    // Fall if bag
+    if (currentAnimation.animationName == 'closed scissors to bag') {
+      // Update the position of the enemy to fall down
+      position.y += 100 * dt; // Adjust the speed as needed
+    }
+
+    // Check if the enemy is out of bounds and reset its position
+    if (position.y > gameRef.size.y) {
+      position.y = -size.y; // Reset to the top of the screen
+      cycleShape(); // Cycle to the next shape
+    }
+  }
 }
 
 class Player extends RiveComponent with TapCallbacks {
@@ -113,7 +122,10 @@ class Player extends RiveComponent with TapCallbacks {
     // Restore the canvas state
     canvas.restore();
 
-    drawFace(canvas, size);
+    if (this is Enemy) {
+      // Draw the face on top of the shader
+      drawFace(canvas, size);
+    }
   }
 
   void drawFace(Canvas canvas, Vector2 size) {
@@ -126,11 +138,11 @@ class Player extends RiveComponent with TapCallbacks {
       height: size.y,
     );
 
-    final centerOffset = Offset(size.x / -16, size.y / 20);
+    final centerOffset = Offset(size.x / -16, size.y / 10);
     bounds = bounds.shift(centerOffset);
 
     //  dot eyes
-    final offset = Offset(0.08 * size.x, -0.05 * size.y);
+    final offset = Offset(0.08 * size.x, 0.05 * size.y);
     for (int i = -1; i <= 1; i += 2) {
       canvas.drawCircle(
         bounds.center + Offset(i * offset.dx, offset.dy),
@@ -142,7 +154,7 @@ class Player extends RiveComponent with TapCallbacks {
       canvas.drawCircle(
         bounds.center +
             Offset(i * offset.dx - 0.01 * size.x, offset.dy - 0.01 * size.y),
-        0.001 * size.x,
+        0.002 * size.x,
         Paint()..color = const Color(0xFFFFFFFF),
       );
     }
@@ -150,11 +162,11 @@ class Player extends RiveComponent with TapCallbacks {
     // halfCircleMouth
     canvas.drawArc(
       Rect.fromCircle(
-        center: bounds.center + Offset(0, 0.1 * size.y),
-        radius: 0.1 * size.x,
+        center: bounds.center + Offset(0, -0.01 * size.y),
+        radius: 0.05 * size.x,
       ),
-      (3.14 * 0.2 + 0.2 * math.sin(gameRef.time * 2)),
-      3.14 * 0.6,
+      (3.14 * -0.6 + 0.2 * math.sin(gameRef.time * 5)),
+      3.14 * 0.2,
       false,
       Paint()
         ..color = const Color(0x7F000000)
