@@ -61,19 +61,24 @@ class RockGame extends FlameGame {
     // Initial uniform values
     updateShaderUniforms();
 
-    final skillsArtboard = await loadArtboard(
-      RiveFile.asset('assets/rocksucks.riv'),
-      artboardName: 'Artboard',
-    );
+    // Load the Rive file once
+    final riveFile = await RiveFile.asset('assets/rocksucks.riv');
 
+    // Create the main character with its own artboard
+    final mainArtboard = await loadArtboard(riveFile, artboardName: 'Artboard');
+
+    // Add the main character
     add(
-      MainCharacter(skillsArtboard, fragmentShader, this)
+      MainCharacter(mainArtboard, fragmentShader, this)
         ..size = Vector2(200, 200) // Set the size of the character
         ..position = Vector2(
           (size.x - 200) / 2, // Center horizontally
           size.y - 200, // Align to the bottom
         ),
     );
+
+    // Add enemies with separate artboards
+    addEnemies(5, riveFile, fragmentShader, this);
   }
 
   @override
@@ -96,5 +101,30 @@ class RockGame extends FlameGame {
     super.update(dt);
     // Update the time uniform in the shader
     time += dt;
+  }
+
+  void addEnemies(
+    int count,
+    RiveFile riveFile,
+    ui.FragmentShader shader,
+    RockGame gameRef,
+  ) async {
+    for (int j = 0; j < count; j++) {
+      // Create a new artboard for each enemy
+      final enemyArtboard = await loadArtboard(
+        riveFile,
+        artboardName: 'Artboard',
+      );
+
+      final enemy =
+          Enemy(enemyArtboard, shader, gameRef)
+            ..size = Vector2(200, 200) // Set the size of the enemy
+            ..position = Vector2(
+              (size.x - 200) * (j + 1) / (count + 1), // Center horizontally
+              size.y - 200, // Align to the bottom
+            );
+
+      add(enemy);
+    }
   }
 }

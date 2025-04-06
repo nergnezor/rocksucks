@@ -6,6 +6,34 @@ import 'package:flame_rive/flame_rive.dart';
 import 'package:flutter/material.dart';
 import 'package:rocksucks/main.dart';
 
+class Enemy extends MainCharacter {
+  Enemy(Artboard artboard, ui.FragmentShader? shader, RockGame gameRef)
+    : super(artboard, shader, gameRef) {
+    // Set the initial position of the enemy
+    position = Vector2(
+      gameRef.size.x - size.x - 20,
+      gameRef.size.y - size.y - 20,
+    );
+  }
+
+  @override
+  void onLoad() {
+    super.onLoad();
+    // Set the initial animation to "stone to scissors"
+    currentAnimation.isActive = true;
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    time_ += dt;
+    if (time_ > 1.0) {
+      time_ = 0.0;
+      cycleShape();
+    }
+  }
+}
+
 class MainCharacter extends RiveComponent with TapCallbacks {
   final ui.FragmentShader? shader;
   double time_ = 0.0;
@@ -31,23 +59,6 @@ class MainCharacter extends RiveComponent with TapCallbacks {
       shapes[(_currentIndex + 1) % shapes.length];
   SimpleAnimation get previousAnimation =>
       shapes[(_currentIndex - 1) % shapes.length];
-
-  @override
-  void onGameResize(Vector2 size) {
-    super.onGameResize(size);
-
-    // Calculate the maximum width as one-third of the smallest axis
-    final maxWidth = size.x < size.y ? size.x / 3 : size.y / 3;
-
-    // Set the size of the character
-    this.size = Vector2(maxWidth, maxWidth);
-
-    // Position the character in the middle bottom of the screen
-    position = Vector2(
-      (size.x - this.size.x) / 2, // Center horizontally
-      size.y - this.size.y, // Align to the bottom
-    );
-  }
 
   @override
   void onLoad() {
@@ -93,7 +104,7 @@ class MainCharacter extends RiveComponent with TapCallbacks {
     // image.dispose();
 
     // Restore the canvas state
-    // canvas.restore();
+    canvas.restore();
 
     drawFace(canvas, size);
   }
