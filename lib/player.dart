@@ -8,28 +8,13 @@ import 'package:rocksucks/main.dart';
 
 class Enemy extends Player {
   Enemy(super.artboard, super.shader, super.gameRef) {
-    // // Set the initial position of the enemy
-    // position = Vector2(
-    //   gameRef.size.x - size.x - 20,
-    //   gameRef.size.y - size.y - 20,
-    // );
-    // angle = math.pi; // Rotate the enemy to face downwards
     scale.y = -1; // Flip the enemy vertically
-    // artboard.
   }
-  // late final List<String> _animationNames = [
-  //   'stone to scissors',
-  //   'closed scissors to bag',
-  //   'bag to stone',
-  // ];
   @override
   void onLoad() {
     super.onLoad();
-    // Set the initial state to bag
     _currentIndex = 1; // Start with the "bag" animation
     currentAnimation.isActive = true;
-
-    // TODO: Flip vertically to make a parachute of the bags
   }
 
   @override
