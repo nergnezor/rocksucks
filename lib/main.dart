@@ -164,10 +164,10 @@ class RockGame extends FlameGame {
   void drawLanes(ui.Canvas canvas, double x, double y) {
     // Define the pastel colors for each lane with enhanced saturation
     final List<Color> laneColors = [
-      const ui.Color.fromARGB(255, 86, 78, 80), // Pastel pink
-      const Color(0xFFD6EAFF), // Pastel blue
-      const Color(0xFFD6FFE1), // Pastel green
-      const ui.Color.fromARGB(255, 219, 217, 208), // Pastel yellow
+      const ui.Color.fromARGB(255, 36, 36, 36), // Pastel pink
+      const ui.Color.fromARGB(255, 77, 77, 77), // Pastel blue
+      const ui.Color.fromARGB(255, 176, 176, 176), // Pastel green
+      const ui.Color.fromARGB(255, 210, 210, 210), // Pastel yellow
     ];
 
     // Define the vanishing point (center of the screen, about 1/3 from the top)
@@ -216,7 +216,7 @@ class RockGame extends FlameGame {
             laneColors,
             [
               0.0,
-              0.5,
+              0.3,
               0.66,
               1.0,
             ], // Four evenly spaced color stops to match the four colors
