@@ -6,7 +6,7 @@ import 'package:flame_rive/flame_rive.dart';
 import 'package:flutter/material.dart';
 import 'package:rocksucks/main.dart';
 
-class Enemy extends MainCharacter {
+class Enemy extends Player {
   Enemy(Artboard artboard, ui.FragmentShader? shader, RockGame gameRef)
     : super(artboard, shader, gameRef) {
     // Set the initial position of the enemy
@@ -15,31 +15,38 @@ class Enemy extends MainCharacter {
       gameRef.size.y - size.y - 20,
     );
   }
-
+  // late final List<String> _animationNames = [
+  //   'stone to scissors',
+  //   'closed scissors to bag',
+  //   'bag to stone',
+  // ];
   @override
   void onLoad() {
     super.onLoad();
-    // Set the initial animation to "stone to scissors"
+    // Set the initial state to bag
+    _currentIndex = 1; // Start with the "bag" animation
     currentAnimation.isActive = true;
+
+    // TODO: Flip vertically to make a parachute of the bag
   }
 
-  @override
-  void update(double dt) {
-    super.update(dt);
-    time_ += dt;
-    if (time_ > 1.0) {
-      time_ = 0.0;
-      cycleShape();
-    }
-  }
+  // @override
+  // void update(double dt) {
+  //   super.update(dt);
+  //   time_ += dt;
+  //   if (time_ > 1.0) {
+  //     time_ = 0.0;
+  //     cycleShape();
+  //   }
+  // }
 }
 
-class MainCharacter extends RiveComponent with TapCallbacks {
+class Player extends RiveComponent with TapCallbacks {
   final ui.FragmentShader? shader;
   double time_ = 0.0;
   final RockGame gameRef;
 
-  MainCharacter(Artboard artboard, this.shader, this.gameRef)
+  Player(Artboard artboard, this.shader, this.gameRef)
     : super(artboard: artboard);
 
   int _currentIndex = 0;
@@ -119,7 +126,7 @@ class MainCharacter extends RiveComponent with TapCallbacks {
       height: size.y,
     );
 
-    final centerOffset = Offset(-20, 20);
+    final centerOffset = Offset(size.x / -16, size.y / 20);
     bounds = bounds.shift(centerOffset);
 
     //  dot eyes

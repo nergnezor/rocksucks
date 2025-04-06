@@ -3,7 +3,7 @@ import 'package:flame/game.dart';
 import 'package:flame_rive/flame_rive.dart';
 import 'package:flutter/material.dart';
 import 'package:flame/components.dart';
-import 'package:rocksucks/main_character.dart';
+import 'package:rocksucks/player.dart';
 
 void main() async {
   // Initialize the shader before running the app
@@ -68,12 +68,16 @@ class RockGame extends FlameGame {
     final mainArtboard = await loadArtboard(riveFile, artboardName: 'Artboard');
 
     // Add the main character
+    final playerWidth = 400.0;
     add(
-      MainCharacter(mainArtboard, fragmentShader, this)
-        ..size = Vector2(200, 200) // Set the size of the character
+      Player(mainArtboard, fragmentShader, this)
+        ..size = Vector2(
+          playerWidth,
+          playerWidth,
+        ) // Set the size of the character
         ..position = Vector2(
-          (size.x - 200) / 2, // Center horizontally
-          size.y - 200, // Align to the bottom
+          (size.x - playerWidth) / 2, // Center horizontally
+          size.y - playerWidth, // Align to the bottom
         ),
     );
 
@@ -121,7 +125,7 @@ class RockGame extends FlameGame {
             ..size = Vector2(200, 200) // Set the size of the enemy
             ..position = Vector2(
               (size.x - 200) * (j + 1) / (count + 1), // Center horizontally
-              size.y - 200, // Align to the bottom
+              200, // Align to the bottom
             );
 
       add(enemy);
