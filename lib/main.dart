@@ -222,5 +222,43 @@ class RockGame extends FlameGame {
             ], // Four evenly spaced color stops to match the four colors
           );
     canvas.drawPath(roadPath, roadPaint);
+
+    // canvas.drawPath(
+    //   roadPath,
+    //   Paint()
+    //     ..color = const Color(0xFF000000)
+    //     ..style = PaintingStyle.stroke
+    //     ..strokeWidth = 2.0,
+    // );
+
+    // Add a part below acting as the front face of the bridge
+    final bridgeHeight = y * 0.1; // Height of the bridge
+    final bridgeTopY =
+        roadBottomY + bridgeHeight; // Y position of the top edge of the bridge
+    final bridgeBottomY =
+        roadBottomY + roadHeight; // Y position of the bottom edge of the bridge
+
+    final bridgePath =
+        Path()
+          ..moveTo(roadBottomLeft.dx, roadBottomY)
+          ..lineTo(roadBottomRight.dx, roadBottomY)
+          ..lineTo(roadTopRight.dx, bridgeTopY)
+          ..lineTo(roadTopLeft.dx, bridgeTopY)
+          ..close();
+    final bridgePaint =
+        Paint()
+          ..shader = ui.Gradient.linear(
+            Offset(roadTopLeft.dx, roadTopLeft.dy),
+            Offset(roadBottomRight.dx, roadBottomY),
+            laneColors,
+            [
+              0.0,
+              0.3,
+              0.66,
+              1.0,
+            ], // Four evenly spaced color stops to match the four colors
+          );
+
+    canvas.drawPath(bridgePath, bridgePaint);
   }
 }
