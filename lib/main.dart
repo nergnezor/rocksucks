@@ -164,10 +164,10 @@ class RockGame extends FlameGame {
   void drawLanes(ui.Canvas canvas, double x, double y) {
     // Define the pastel colors for each lane with enhanced saturation
     final List<Color> laneColors = [
-      const Color(0xFFFFD6E0), // Pastel pink
+      const ui.Color.fromARGB(255, 86, 78, 80), // Pastel pink
       const Color(0xFFD6EAFF), // Pastel blue
       const Color(0xFFD6FFE1), // Pastel green
-      const Color(0xFFFFF8D6), // Pastel yellow
+      const ui.Color.fromARGB(255, 219, 217, 208), // Pastel yellow
     ];
 
     // Define the vanishing point (center of the screen, about 1/3 from the top)
@@ -178,417 +178,49 @@ class RockGame extends FlameGame {
     final roadBottomWidth = x * 0.8;
     final roadLeftEdgeBottom = (x - roadBottomWidth) / 2;
     final roadRightEdgeBottom = roadLeftEdgeBottom + roadBottomWidth;
+    final roadTopWidth =
+        roadBottomWidth * 0.5; // Width at the top of the screen
+    final roadLeftEdgeTop = (x - roadTopWidth) / 2;
+    final roadRightEdgeTop = roadLeftEdgeTop + roadTopWidth;
+    final roadHeight = y * 0.7; // Height of the road
 
-    // Use time variable for animated curves with multiple frequency components
-    // This creates a more organic wave-like motion
-    final curveTimeFactor =
-        sin(time * 0.5) * 0.3 +
-        sin(time * 0.2) * 0.1 +
-        0.7; // Oscillates more naturally between 0.3 and 1.1
+    final roadTopY = y - roadHeight; // Y position of the top edge of the road
 
-    // Simulate occasional road bumps
-    final bumpEffect = sin(time * 3) > 0.9 ? sin(time * 10) * 6.0 : 0.0;
+    final roadBottomY =
+        y -
+        roadHeight +
+        roadHeight * 0.8; // Y position of the bottom edge of the road
+    final roadTopLeft = Offset(roadLeftEdgeTop, roadTopY);
+    final roadTopRight = Offset(roadRightEdgeTop, roadTopY);
+    final roadBottomLeft = Offset(roadLeftEdgeBottom, roadBottomY);
+    final roadBottomRight = Offset(roadRightEdgeBottom, roadBottomY);
+    final roadPath =
+        Path()
+          ..moveTo(roadTopLeft.dx, roadTopLeft.dy)
+          ..lineTo(roadTopRight.dx, roadTopRight.dy)
+          ..lineTo(roadBottomRight.dx, roadBottomRight.dy)
+          ..lineTo(roadBottomLeft.dx, roadBottomLeft.dy)
+          ..close();
 
-    // Draw the filled lanes with gradients
-    final numLanes = 4;
-    for (int i = 0; i < numLanes; i++) {
-      // Calculate the lanes' boundaries
-      final leftFraction = i / numLanes;
-      final rightFraction = (i + 1) / numLanes;
-
-      final leftBottomX = roadLeftEdgeBottom + (roadBottomWidth * leftFraction);
-      final rightBottomX =
-          roadLeftEdgeBottom + (roadBottomWidth * rightFraction);
-
-      // Create a path for the curved lane
-      final path = Path();
-
-      // Start at the vanishing point
-      path.moveTo(vanishingPointX, vanishingPointY);
-
-      // Calculate curve control points with more dynamic curves
-      final baseAmplitude = 25.0;
-      final curveAmplitude =
-          baseAmplitude * (i % 2 == 0 ? 1 : -1) * curveTimeFactor;
-      final controlY = vanishingPointY + (y - vanishingPointY) * 0.5;
-
-      // Add time-based wave effect to curves with multiple frequencies
-      final waveEffect =
-          sin(time + i * 0.7) * 10.0 +
-          sin(time * 1.3 + i * 0.5) * 5.0 +
-          bumpEffect; // Add bump effect
-
-      // Left edge curve control point with enhanced dynamics
-      final leftControlX =
-          vanishingPointX +
-          (leftBottomX - vanishingPointX) * 0.5 +
-          curveAmplitude * sin(i * 0.5 + time * 0.2) +
-          waveEffect;
-
-      // Right edge curve control point with enhanced dynamics
-      final rightControlX =
-          vanishingPointX +
-          (rightBottomX - vanishingPointX) * 0.5 +
-          curveAmplitude * sin(i * 0.5 + time * 0.2) +
-          waveEffect;
-
-      // Draw the curved left edge
-      path.quadraticBezierTo(leftControlX, controlY, leftBottomX, y);
-
-      // Line to the right bottom corner
-      path.lineTo(rightBottomX, y);
-
-      // Draw the curved right edge back to vanishing point
-      path.quadraticBezierTo(
-        rightControlX,
-        controlY,
-        vanishingPointX,
-        vanishingPointY,
-      );
-
-      // Close the path
-      path.close();
-
-      // Create an enhanced gradient for the lane with three color stops
-      final gradient = ui.Gradient.linear(
-        Offset(vanishingPointX, vanishingPointY),
-        Offset((leftBottomX + rightBottomX) / 2, y),
-        [
-          laneColors[i].withOpacity(0.5), // Start with more transparent
-          laneColors[i].withOpacity(0.8), // Middle transition
-          laneColors[i], // End with full color
-        ],
-        [0.0, 0.7, 1.0], // Position each color stop
-      );
-
-      // Draw the filled lane with gradient
-      canvas.drawPath(
-        path,
-        Paint()
-          ..shader = gradient
-          ..style = PaintingStyle.fill,
-      );
-
-      // Add pavement texture to each lane
-      _drawPavementTexture(canvas, path, i);
-
-      // Add enhanced shadow gradient along the edges for depth
-      final shadowPaint =
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 3.0
-            ..shader = ui.Gradient.linear(
-              Offset(vanishingPointX, vanishingPointY),
-              Offset((leftBottomX + rightBottomX) / 2, y),
-              [
-                Colors.black.withOpacity(0.5), // Darker at vanishing point
-                Colors.black.withOpacity(0.2), // Middle transition
-                Colors.black.withOpacity(0.0), // Fades completely at bottom
-              ],
-              [0.0, 0.6, 1.0],
-            );
-
-      canvas.drawPath(path, shadowPaint);
-
-      // Add an inner glow effect for more depth
-      final innerGlowPaint =
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.5
-            ..shader = ui.Gradient.linear(
-              Offset(vanishingPointX, vanishingPointY),
-              Offset((leftBottomX + rightBottomX) / 2, y),
-              [Colors.white.withOpacity(0.6), Colors.white.withOpacity(0.0)],
-              [0.0, 0.5],
-            );
-
-      // Slightly smaller path for inner glow
-      final innerPath = Path();
-      innerPath.moveTo(vanishingPointX, vanishingPointY + 2);
-      innerPath.quadraticBezierTo(
-        leftControlX,
-        controlY + 1,
-        leftBottomX + 2,
-        y - 2,
-      );
-      innerPath.lineTo(rightBottomX - 2, y - 2);
-      innerPath.quadraticBezierTo(
-        rightControlX,
-        controlY + 1,
-        vanishingPointX,
-        vanishingPointY + 2,
-      );
-
-      canvas.drawPath(innerPath, innerGlowPaint);
-    }
-
-    // Draw horizontal connector lines with enhanced curve for more road-like appearance
-    final segments = 12; // Increased segments for smoother road
-    final linePaint =
-        Paint()
-          ..color = Colors.black.withOpacity(0.3)
-          ..style = PaintingStyle.stroke;
-
-    for (int i = 1; i <= segments; i++) {
-      final t = i / segments;
-      final segmentY = vanishingPointY + (y - vanishingPointY) * t;
-
-      // Add a dynamic curve to the horizontal lines for enhanced 3D effect
-      final curveOffset = 8.0 * sin(t * pi * 0.5 + time * 0.3) + bumpEffect * t;
-
-      // Calculate perspective width at this y-coordinate with curve
-      final segmentLeftX =
-          vanishingPointX +
-          (roadLeftEdgeBottom - vanishingPointX) * t -
-          curveOffset * t;
-      final segmentRightX =
-          vanishingPointX +
-          (roadRightEdgeBottom - vanishingPointX) * t +
-          curveOffset * t;
-
-      // Draw curved horizontal line
-      final horizontalPath = Path();
-      horizontalPath.moveTo(segmentLeftX, segmentY);
-
-      // Add a dynamic curve to the horizontal line
-      final midX = (segmentLeftX + segmentRightX) / 2;
-      final curveY = segmentY + curveOffset * sin(time * 0.5);
-
-      horizontalPath.quadraticBezierTo(midX, curveY, segmentRightX, segmentY);
-
-      // Variable stroke width for perspective with animation effect
-      final strokePulse = 0.2 * sin(time * 3 + i * 0.5);
-      linePaint.strokeWidth = (1.0 + t * 1.5) * (1.0 + strokePulse);
-
-      canvas.drawPath(horizontalPath, linePaint);
-    }
-
-    // Draw lane markers/dividers with pulsing animations
-    _drawLaneMarkers(
-      canvas,
-      x,
-      y,
-      vanishingPointX,
-      vanishingPointY,
-      roadLeftEdgeBottom,
-      roadRightEdgeBottom,
+    final roadTopCenter = Offset(
+      (roadLeftEdgeTop + roadRightEdgeTop) / 2,
+      roadTopY,
     );
 
-    // Add occasional roadside objects
-    _drawRoadsideObjects(
-      canvas,
-      x,
-      y,
-      vanishingPointX,
-      vanishingPointY,
-      roadLeftEdgeBottom,
-      roadRightEdgeBottom,
-    );
-  }
-
-  // Helper method to draw pavement texture
-  void _drawPavementTexture(Canvas canvas, Path lanePath, int laneIndex) {
-    // Create a clipPath to restrict drawing to the lane area
-    canvas.save();
-    canvas.clipPath(lanePath);
-
-    // Create a subtle dotted texture pattern
-    final dotPaint =
+    // Draw the road with a gradient
+    final roadPaint =
         Paint()
-          ..color = Colors.black.withOpacity(0.05)
-          ..style = PaintingStyle.fill;
-
-    // Use different texture patterns for each lane
-    final random = Random(laneIndex);
-    final dotCount = 100 + laneIndex * 50; // More dots for higher lane indices
-
-    for (int i = 0; i < dotCount; i++) {
-      final dotSize = random.nextDouble() * 2.0 + 1.0;
-      final x = random.nextDouble() * size.x;
-      final y = random.nextDouble() * size.y;
-
-      // Only draw dots that will be visible (closer to the bottom)
-      if (y > size.y * 0.4) {
-        canvas.drawCircle(Offset(x, y), dotSize, dotPaint);
-      }
-    }
-
-    canvas.restore();
-  }
-
-  // Helper method to draw lane markers/dividers
-  void _drawLaneMarkers(
-    Canvas canvas,
-    double x,
-    double y,
-    double vanishingPointX,
-    double vanishingPointY,
-    double roadLeftEdgeBottom,
-    double roadRightEdgeBottom,
-  ) {
-    final roadWidth = roadRightEdgeBottom - roadLeftEdgeBottom;
-    final numLanes = 4;
-
-    // Create paint for lane markers
-    final markerPaint =
-        Paint()
-          ..color = Colors.white.withOpacity(0.7)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 3.0;
-
-    // Draw lane dividers
-    for (int i = 1; i < numLanes; i++) {
-      final fraction = i / numLanes;
-      final bottomX = roadLeftEdgeBottom + (roadWidth * fraction);
-
-      final markerPath = Path();
-      markerPath.moveTo(vanishingPointX, vanishingPointY);
-
-      // Calculate control point for the curve
-      final controlX = vanishingPointX + (bottomX - vanishingPointX) * 0.5;
-      final controlY = vanishingPointY + (y - vanishingPointY) * 0.5;
-
-      // Animate with time for a slight wave effect
-      final waveOffset = sin(time * 2 + i) * 5.0;
-
-      // Draw the dashed line
-      final dashCount = 10;
-      for (int j = 0; j < dashCount; j++) {
-        final t1 = j / dashCount;
-        final t2 = (j + 0.5) / dashCount; // Half length of a dash
-
-        // Only draw if this is a dash, not a gap
-        if (j % 2 == 0) {
-          // Calculate points along the quadratic curve
-          final x1 = _calculateQuadraticPoint(
-            vanishingPointX,
-            controlX + waveOffset,
-            bottomX,
-            t1,
+          ..shader = ui.Gradient.linear(
+            roadTopCenter,
+            Offset(roadRightEdgeBottom, roadBottomY),
+            laneColors,
+            [
+              0.0,
+              0.5,
+              0.66,
+              1.0,
+            ], // Four evenly spaced color stops to match the four colors
           );
-          final y1 = _calculateQuadraticPoint(vanishingPointY, controlY, y, t1);
-          final x2 = _calculateQuadraticPoint(
-            vanishingPointX,
-            controlX + waveOffset,
-            bottomX,
-            t2,
-          );
-          final y2 = _calculateQuadraticPoint(vanishingPointY, controlY, y, t2);
-
-          // Draw the dash
-          canvas.drawLine(
-            Offset(x1, y1),
-            Offset(x2, y2),
-            markerPaint..strokeWidth = 1.0 + t1 * 3.0, // Perspective width
-          );
-        }
-      }
-    }
-  }
-
-  // Helper for calculating points along a quadratic Bezier curve
-  double _calculateQuadraticPoint(double p0, double p1, double p2, double t) {
-    return (1 - t) * (1 - t) * p0 + 2 * (1 - t) * t * p1 + t * t * p2;
-  }
-
-  // Helper to draw occasional roadside objects in the distance
-  void _drawRoadsideObjects(
-    Canvas canvas,
-    double x,
-    double y,
-    double vanishingPointX,
-    double vanishingPointY,
-    double roadLeftEdgeBottom,
-    double roadRightEdgeBottom,
-  ) {
-    // Only draw objects occasionally based on time
-    if (sin(time * 0.5) > 0.7) {
-      final random = Random((time * 10).toInt());
-      final objectSize = 10.0 + random.nextDouble() * 20.0;
-
-      // Decide which side to draw the object (left or right)
-      final isLeftSide = random.nextBool();
-
-      // Calculate position based on perspective
-      final distanceFactor =
-          0.2 + random.nextDouble() * 0.3; // Between 0.2-0.5 down the road
-      final objectY = vanishingPointY + (y - vanishingPointY) * distanceFactor;
-
-      // Calculate X position based on the side of the road
-      final roadWidth = roadRightEdgeBottom - roadLeftEdgeBottom;
-      final perspectiveRoadWidth = roadWidth * distanceFactor;
-      final perspectiveRoadLeft = vanishingPointX - (perspectiveRoadWidth / 2);
-      final perspectiveRoadRight = vanishingPointX + (perspectiveRoadWidth / 2);
-
-      final objectX =
-          isLeftSide
-              ? perspectiveRoadLeft - objectSize * distanceFactor
-              : perspectiveRoadRight + objectSize * distanceFactor;
-
-      // Draw a simple shape representing a roadside object
-      final objectPaint =
-          Paint()
-            ..color = Color(0xFF555555)
-            ..style = PaintingStyle.fill;
-
-      // Draw different types of roadside objects
-      final objectType = random.nextInt(3);
-      switch (objectType) {
-        case 0: // Tree-like shape
-          final treePath = Path();
-          treePath.moveTo(objectX, objectY);
-          treePath.lineTo(objectX - objectSize * 0.5, objectY + objectSize);
-          treePath.lineTo(objectX + objectSize * 0.5, objectY + objectSize);
-          treePath.close();
-          canvas.drawPath(treePath, objectPaint);
-
-          // Tree trunk
-          canvas.drawRect(
-            Rect.fromLTWH(
-              objectX - objectSize * 0.1,
-              objectY + objectSize,
-              objectSize * 0.2,
-              objectSize * 0.5,
-            ),
-            objectPaint,
-          );
-          break;
-
-        case 1: // Sign-like shape
-          canvas.drawRect(
-            Rect.fromLTWH(
-              objectX - objectSize * 0.5,
-              objectY - objectSize * 0.5,
-              objectSize,
-              objectSize,
-            ),
-            objectPaint,
-          );
-
-          // Sign post
-          canvas.drawRect(
-            Rect.fromLTWH(
-              objectX - objectSize * 0.1,
-              objectY + objectSize * 0.5,
-              objectSize * 0.2,
-              objectSize * 0.8,
-            ),
-            objectPaint,
-          );
-          break;
-
-        case 2: // Rock-like shape
-          final rockPath = Path();
-          rockPath.addOval(
-            Rect.fromCenter(
-              center: Offset(objectX, objectY + objectSize * 0.7),
-              width: objectSize * 1.2,
-              height: objectSize,
-            ),
-          );
-          canvas.drawPath(rockPath, objectPaint);
-          break;
-      }
-    }
+    canvas.drawPath(roadPath, roadPaint);
   }
 }
