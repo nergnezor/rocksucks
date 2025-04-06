@@ -17,21 +17,38 @@ class Enemy extends Player {
     currentAnimation.isActive = true;
   }
 
+  double hSpeed = 0.0;
+  double vSpeed = 100.0;
   @override
   void update(double dt) {
     super.update(dt);
 
     // Fall if bag
-    if (currentAnimation.animationName == 'closed scissors to bag') {
-      // Update the position of the enemy to fall down
-      position.y += 100 * dt; // Adjust the speed as needed
-    }
+    switch (currentAnimation.animationName) {
+      case 'stone to scissors':
+        hSpeed = 0.0;
+        break;
+      case 'closed scissors to bag':
+        hSpeed =
+            math.Random().nextDouble() * 100 - 50; // Random horizontal speed
+        // Update the position of the enemy to fall down
+        position.y += vSpeed * dt; // Adjust the speed as needed
+        // Add random horizontal speed
+        // Check if the enemy is out of bounds and reset its position
+        if (position.y > gameRef.size.y / 2) {
+          // position.y = size.y; // Reset to the top of the screen
+          // vSpeed *= -1; // Reverse the vertical speed
+          vSpeed /= 2; // Reverse the vertical speed
+          cycleShape();
+        }
+        break;
+      case 'bag to stone':
+        hSpeed = 0.0;
+        position.y += vSpeed * dt; // Adjust the speed as needed
 
-    // Check if the enemy is out of bounds and reset its position
-    if (position.y > gameRef.size.y) {
-      position.y = -size.y; // Reset to the top of the screen
-      cycleShape(); // Cycle to the next shape
+        break;
     }
+    if (currentAnimation.animationName == 'closed scissors to bag') {}
   }
 }
 
