@@ -106,6 +106,19 @@ class RockGame extends FlameGame {
     super.update(dt);
     // Update the time uniform in the shader
     time += dt;
+
+    // Check for collisions between player and enemies
+    final player = children.whereType<Player>().firstOrNull;
+    if (player != null && !(player is Enemy)) {
+      final enemies = children.whereType<Enemy>().toList();
+      for (final enemy in enemies) {
+        // Check if player collides with enemy
+        if (player.checkCollision(enemy)) {
+          // Handle the collision based on player's current state
+          player.handleEnemyCollision(enemy);
+        }
+      }
+    }
   }
 
   @override

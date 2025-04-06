@@ -155,21 +155,64 @@ class Player extends RiveComponent with TapCallbacks {
   void drawFace(Canvas canvas, Vector2 size) {
     if (currentAnimation.animationName == 'stone to scissors') return;
 
-    // final bounds = artboard.layoutBounds;
+    // Save the canvas state for rotation
+    canvas.save();
+
     var bounds = Rect.fromCenter(
       center: Offset(size.x / 2, size.y / 2),
       width: size.x,
       height: size.y,
     );
 
-    final centerOffset = Offset(size.x / -16, size.y / 10);
+    // Calculate roll angle based on time - creates a rolling effect
+    final rollAngle = gameRef.time * 2.0; // Controls rotation speed
+
+    // Apply rolling transformation to simulate forward rolling (not sideways)
+    canvas.translate(size.x / 2, size.y / 2); // Move to center
+
+    // Instead of rotating around z-axis, we simulate x-axis rotation with scaling
+    // This creates the illusion of forward rolling rather than sideways
+    final scaleY =
+        1.0 +
+        0.2 * math.sin(rollAngle); // Vertical scaling to simulate forward roll
+    canvas.scale(1.0, scaleY);
+
+    // Apply a small z-rotation to add some natural movement
+    canvas.rotate(
+      rollAngle * 0.2,
+    ); // Reduced rotation for slight sideways movement
+
+    canvas.translate(-size.x / 2, -size.y / 2); // Move back
+
+    // Calculate vertical bouncing to simulate ball movement
+    final bounceOffset =
+        math.sin(rollAngle) * size.y * 0.05; // Increased bounce effect
+
+    final centerOffset = Offset(
+      size.x / -16 +
+          math.cos(rollAngle) * size.x * 0.02, // Horizontal oscillation
+      size.y / 10 + bounceOffset, // Add bounce effect
+    );
     bounds = bounds.shift(centerOffset);
 
     //  dot eyes
     final offset = Offset(0.08 * size.x, 0.05 * size.y);
     for (int i = -1; i <= 1; i += 2) {
+      // Calculate eye position with slight wiggle based on roll
+      final eyeOffset = Offset(
+        i * offset.dx + math.cos(rollAngle + i) * size.x * 0.01,
+        offset.dy + math.sin(rollAngle * 1.5) * size.y * 0.01,
+      );
+
+      // Adjust eye position based on roll angle to enhance forward rolling illusion
+      final adjustedEyeOffset = Offset(
+        eyeOffset.dx,
+        eyeOffset.dy -
+            math.sin(rollAngle) * size.y * 0.03, // Eyes move up/down with roll
+      );
+
       canvas.drawCircle(
-        bounds.center + Offset(i * offset.dx, offset.dy),
+        bounds.center + adjustedEyeOffset,
         0.035 * size.x,
         Paint()..color = const Color(0xFF000000),
       );
@@ -177,32 +220,37 @@ class Player extends RiveComponent with TapCallbacks {
       // specular highlight
       canvas.drawCircle(
         bounds.center +
-            Offset(i * offset.dx - 0.01 * size.x, offset.dy - 0.01 * size.y),
+            adjustedEyeOffset +
+            Offset(-0.01 * size.x, -0.01 * size.y),
         0.002 * size.x,
         Paint()..color = const Color(0xFFFFFFFF),
       );
     }
 
-    // halfCircleMouth
+    // halfCircleMouth that changes shape as it rolls
+    final mouthAngle = 3.14 * -0.6 + 0.3 * math.sin(rollAngle * 0.8);
+    final mouthWidth = 3.14 * (0.2 + 0.1 * math.cos(rollAngle));
+
+    // Adjust mouth position based on roll angle
+    final mouthYOffset =
+        math.sin(rollAngle) * size.y * 0.04; // Mouth moves up/down with roll
+
     canvas.drawArc(
       Rect.fromCircle(
-        center: bounds.center + Offset(0, -0.01 * size.y),
+        center: bounds.center + Offset(0, -0.01 * size.y + mouthYOffset),
         radius: 0.05 * size.x,
       ),
-      (3.14 * -0.6 + 0.2 * math.sin(gameRef.time * 5)),
-      3.14 * 0.2,
+      mouthAngle,
+      mouthWidth,
       false,
       Paint()
         ..color = const Color(0x7F000000)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 0.01 * size.x,
     );
-    //  dotNose
-    canvas.drawCircle(
-      bounds.center,
-      0.02 * size.x,
-      Paint()..color = const Color(0xCF000000),
-    );
+
+    // Restore the canvas state
+    canvas.restore();
   }
 
   @override
@@ -219,5 +267,35 @@ class Player extends RiveComponent with TapCallbacks {
   @override
   void onLongTapDown(TapDownEvent event) {
     scissoring.isActive = !scissoring.isActive;
+  }
+
+  bool checkCollision(Enemy enemy) {
+    // Simple collision detection based on position and size
+    final distance = position.distanceTo(enemy.position);
+    // Calculate collision threshold based on the sizes of both entities
+    final collisionThreshold =
+        (size.x + enemy.size.x) * 0.25; // 25% of combined width
+    return distance < collisionThreshold;
+  }
+
+  // Method to handle enemy interactions
+  void handleEnemyCollision(Enemy enemy) {
+    // If player is in bag state and collides with enemy
+    if (currentAnimation.animationName == 'closed scissors to bag') {
+      // Shoot enemy out in the opposite direction
+      enemy.vSpeed = -300.0; // Faster upward speed
+
+      // Add some horizontal movement away from player
+      final directionFromPlayer = (enemy.position.x - position.x);
+      // If enemy is directly above, give it a slight push to either side
+      enemy.hSpeed =
+          directionFromPlayer == 0
+              ? (math.Random().nextBool() ? 150 : -150)
+              : directionFromPlayer *
+                  3; // Amplify existing horizontal difference
+
+      // Visual effect - make the enemy spin faster by cycling shape
+      enemy.cycleShape();
+    }
   }
 }
