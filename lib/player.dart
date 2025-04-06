@@ -41,9 +41,6 @@ class Enemy extends Player {
 
     // Fall if bag
     switch (currentAnimation.animationName) {
-      case 'stone to scissors':
-        hSpeed = 0.0;
-        break;
       case 'closed scissors to bag':
         hSpeed =
             math.Random().nextDouble() * 100 - 50; // Random horizontal speed
@@ -61,6 +58,7 @@ class Enemy extends Player {
       case 'bag to stone':
         hSpeed = 0.0;
         position.y += vSpeed * dt; // Adjust the speed as needed
+        updatePerspectiveScale();
         break;
     }
 
@@ -69,8 +67,10 @@ class Enemy extends Player {
       position.x += hSpeed * dt;
     }
 
-    // Update scale based on perspective
-    updatePerspectiveScale();
+    // reset position if out of bounds
+    if (position.y > gameRef.size.y) {
+      position.y = gameRef.size.y; // Reset to the top of the screen
+    }
   }
 }
 
