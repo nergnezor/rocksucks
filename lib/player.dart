@@ -13,12 +13,19 @@ class Enemy extends Player {
   @override
   void onLoad() {
     super.onLoad();
-    _currentIndex = 1; // Start with the "bag" animation
-    currentAnimation.isActive = true;
+    reset(); // Set initial vertical speed
   }
 
+  void reset() {
+    _currentIndex = 1; // Start with the "bag" animation
+    currentAnimation.isActive = true;
+    vSpeed = startSpeed;
+    updatePerspectiveScale();
+  }
+
+  static const double startSpeed = 100.0;
   double hSpeed = 0.0;
-  double vSpeed = 100.0;
+  double vSpeed = startSpeed;
   double baseSize = 100.0; // Base size to scale from
 
   // Calculate scale factor based on y position
@@ -49,15 +56,14 @@ class Enemy extends Player {
         // Add random horizontal speed
         // Check if the enemy is out of bounds and reset its position
         if (position.y > gameRef.size.y / 2) {
-          // position.y = size.y; // Reset to the top of the screen
-          // vSpeed *= -1; // Reverse the vertical speed
-          vSpeed /= 2; // Reverse the vertical speed
           cycleShape();
+          vSpeed = 0;
         }
         break;
       case 'bag to stone':
         hSpeed = 0.0;
         position.y += vSpeed * dt; // Adjust the speed as needed
+        vSpeed += 1;
         updatePerspectiveScale();
         break;
     }
@@ -69,7 +75,8 @@ class Enemy extends Player {
 
     // reset position if out of bounds
     if (position.y > gameRef.size.y) {
-      position.y = gameRef.size.y; // Reset to the top of the screen
+      position.y -= gameRef.size.y;
+      reset();
     }
   }
 }
@@ -113,7 +120,7 @@ class Player extends RiveComponent with TapCallbacks {
   @override
   void render(Canvas canvas) {
     // Save the canvas state
-    canvas.save();
+    // canvas.save();
 
     // First, render the Rive animation to a separate image that we can use as a texture
     final recorder = ui.PictureRecorder();
@@ -144,7 +151,7 @@ class Player extends RiveComponent with TapCallbacks {
     // image.dispose();
 
     // Restore the canvas state
-    canvas.restore();
+    // canvas.restore();
 
     if (this is Enemy) {
       // Draw the face on top of the shader
@@ -261,6 +268,10 @@ class Player extends RiveComponent with TapCallbacks {
   void cycleShape() {
     previousAnimation.reset();
     _currentIndex = (_currentIndex + 1) % shapes.length;
+    // if (this is Enemy &&
+    //     currentAnimation.animationName == 'stone to scissors') {
+    //   _currentIndex = (_currentIndex + 1) % shapes.length;
+    // }
     currentAnimation.isActive = true;
   }
 
