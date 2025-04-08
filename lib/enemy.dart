@@ -8,17 +8,17 @@ class Enemy extends Player {
   @override
   void onLoad() {
     super.onLoad();
-    reset(); // Set initial vertical speed
+    cycleShape();
+    // vSpeed = startSpeed;
+    // reset(); // Set initial vertical speed
   }
 
-  void reset() {
-    // _currentIndex = 1; // Start with the "bag" animation
-    cycleShape();
-    currentAnimation.isActive = true;
-    vSpeed = startSpeed;
-    updatePerspectiveScale();
-    fluttering.isActive = true;
-  }
+  // void reset() {
+  //   // _currentIndex = 1; // Start with the "bag" animation
+  //   currentAnimation.isActive = true;
+  //   updatePerspectiveScale();
+  //   fluttering.isActive = true;
+  // }
 
   static const double startSpeed = 100.0;
   double hSpeed = 0.0;
@@ -74,7 +74,9 @@ class Enemy extends Player {
     // reset position if out of bounds
     if (position.y > gameRef.size.y) {
       position.y -= gameRef.size.y;
-      reset();
+      // reset();
+      gameRef.enemies.remove(this); // Remove from the list of enemies
+      gameRef.remove(this); // Remove the enemy if it goes out of bounds
     }
   }
 }

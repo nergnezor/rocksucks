@@ -37,6 +37,8 @@ class RockGame extends FlameGame {
   late ui.FragmentShader riveFragmentShader;
   late ui.FragmentShader backgroundShader;
   double time = 0;
+  List<Enemy> enemies = [];
+  late RiveFile riveFile;
 
   RockGame({
     required this.riveShaderProgram,
@@ -78,7 +80,7 @@ class RockGame extends FlameGame {
     updateShaderUniforms();
 
     // Load the Rive file once
-    final riveFile = await RiveFile.asset('assets/rocksucks.riv');
+    riveFile = await RiveFile.asset('assets/rocksucks.riv');
 
     // Create the main character with its own artboard
     final mainArtboard = await loadArtboard(riveFile, artboardName: 'Artboard');
@@ -96,9 +98,6 @@ class RockGame extends FlameGame {
           size.y - playerWidth, // Align to the bottom
         ),
     );
-
-    // Add enemies with separate artboards
-    addEnemies(5, riveFile, riveFragmentShader, this);
   }
 
   @override
@@ -138,6 +137,11 @@ class RockGame extends FlameGame {
           player.handleEnemyCollision(enemy);
         }
       }
+    }
+
+    if (enemies.isEmpty) {
+      // Add enemies if none exist
+      addEnemies(5, riveFile, riveFragmentShader, this);
     }
   }
 
@@ -186,6 +190,7 @@ class RockGame extends FlameGame {
             );
 
       add(enemy);
+      enemies.add(enemy); // Add the enemy to the list
     }
   }
 
