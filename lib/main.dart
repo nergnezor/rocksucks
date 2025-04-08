@@ -4,6 +4,7 @@ import 'package:flame/game.dart';
 import 'package:flame_rive/flame_rive.dart';
 import 'package:flutter/material.dart';
 import 'package:flame/components.dart';
+import 'package:rocksucks/enemy.dart';
 import 'package:rocksucks/player.dart';
 
 void main() async {
