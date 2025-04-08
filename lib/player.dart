@@ -25,6 +25,8 @@ class Player extends RiveComponent with TapCallbacks {
   ];
 
   SimpleAnimation scissoring = SimpleAnimation('scissoring', autoplay: false);
+  SimpleAnimation rolling = SimpleAnimation('rolling', autoplay: false);
+  SimpleAnimation fluttering = SimpleAnimation('fluttering', autoplay: false);
 
   SimpleAnimation get currentAnimation =>
       shapes[(_currentIndex) % shapes.length];
@@ -40,7 +42,7 @@ class Player extends RiveComponent with TapCallbacks {
             .map((name) => SimpleAnimation(name, autoplay: false))
             .toList();
 
-    [...shapes, scissoring].forEach(artboard.addController);
+    [...shapes, scissoring, rolling].forEach(artboard.addController);
   }
 
   @override

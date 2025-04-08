@@ -17,6 +17,7 @@ class Enemy extends Player {
     currentAnimation.isActive = true;
     vSpeed = startSpeed;
     updatePerspectiveScale();
+    fluttering.isActive = true;
   }
 
   static const double startSpeed = 100.0;
@@ -53,6 +54,7 @@ class Enemy extends Player {
         // Check if the enemy is out of bounds and reset its position
         if (position.y > gameRef.size.y / 2) {
           cycleShape();
+          rolling.isActive = true;
           vSpeed = 0;
         }
         break;
