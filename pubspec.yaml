@@ -25,3 +25,4 @@ flutter:
 
   shaders:
     - assets/shaders/rive_shader.frag
+    - assets/shaders/red_background.frag

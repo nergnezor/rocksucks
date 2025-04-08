@@ -11,24 +11,37 @@ void main() async {
   // Initialize the shader before running the app
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load the shader using the correct path and asset bundle
-  final shaderProgram = await ui.FragmentProgram.fromAsset(
+  // Load the shaders using the correct path and asset bundle
+  final riveShaderProgram = await ui.FragmentProgram.fromAsset(
     'assets/shaders/rive_shader.frag',
+  );
+
+  final backgroundShaderProgram = await ui.FragmentProgram.fromAsset(
+    'assets/shaders/red_background.frag',
   );
 
   runApp(
     GameWidget.controlled(
-      gameFactory: () => RockGame(shaderProgram: shaderProgram),
+      gameFactory:
+          () => RockGame(
+            riveShaderProgram: riveShaderProgram,
+            backgroundShaderProgram: backgroundShaderProgram,
+          ),
     ),
   );
 }
 
 class RockGame extends FlameGame {
-  final ui.FragmentProgram shaderProgram;
-  late ui.FragmentShader fragmentShader;
+  final ui.FragmentProgram riveShaderProgram;
+  final ui.FragmentProgram backgroundShaderProgram;
+  late ui.FragmentShader riveFragmentShader;
+  late ui.FragmentShader backgroundShader;
   double time = 0;
 
-  RockGame({required this.shaderProgram});
+  RockGame({
+    required this.riveShaderProgram,
+    required this.backgroundShaderProgram,
+  });
 
   @override
   Color backgroundColor() => const Color(0xFFE0E0E0); // Light gray background
@@ -52,12 +65,13 @@ class RockGame extends FlameGame {
       ),
     );
 
-    // Initialize the fragment shader
+    // Initialize the fragment shaders
     try {
-      fragmentShader = shaderProgram.fragmentShader();
-      print('Shader loaded successfully.');
+      riveFragmentShader = riveShaderProgram.fragmentShader();
+      backgroundShader = backgroundShaderProgram.fragmentShader();
+      print('Shaders loaded successfully.');
     } catch (e) {
-      print('Error loading shader: $e');
+      print('Error loading shaders: $e');
     }
 
     // Initial uniform values
@@ -72,7 +86,7 @@ class RockGame extends FlameGame {
     // Add the main character
     final playerWidth = 400.0;
     add(
-      Player(mainArtboard, fragmentShader, this)
+      Player(mainArtboard, riveFragmentShader, this)
         ..size = Vector2(
           playerWidth,
           playerWidth,
@@ -84,7 +98,7 @@ class RockGame extends FlameGame {
     );
 
     // Add enemies with separate artboards
-    addEnemies(5, riveFile, fragmentShader, this);
+    addEnemies(5, riveFile, riveFragmentShader, this);
   }
 
   @override
@@ -97,9 +111,14 @@ class RockGame extends FlameGame {
 
   void updateShaderUniforms() {
     // Update resolution when the game size changes
-    fragmentShader.setFloat(0, size.x); // uResolution.x
-    fragmentShader.setFloat(1, size.y); // uResolution.y
-    fragmentShader.setFloat(2, time); // uTime
+    riveFragmentShader.setFloat(0, size.x); // uResolution.x
+    riveFragmentShader.setFloat(1, size.y); // uResolution.y
+    riveFragmentShader.setFloat(2, time); // uTime
+
+    // Update background shader uniforms
+    backgroundShader.setFloat(0, size.x); // resolution.x
+    backgroundShader.setFloat(1, size.y); // resolution.y
+    backgroundShader.setFloat(2, time); // time
   }
 
   @override
@@ -124,8 +143,16 @@ class RockGame extends FlameGame {
 
   @override
   void render(Canvas canvas) {
-    drawLanes(canvas, size.x, size.y);
+    // Apply red background shader
+    final rect = Rect.fromLTWH(0, 0, size.x, size.y);
+    backgroundShader.setFloat(0, size.x); // resolution width
+    backgroundShader.setFloat(1, size.y); // resolution height
+    backgroundShader.setFloat(2, time); // time for animation effects
 
+    canvas.drawRect(rect, Paint()..shader = backgroundShader);
+
+    // Draw the rest of the game
+    drawLanes(canvas, size.x, size.y);
     super.render(canvas);
   }
 
