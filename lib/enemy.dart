@@ -2,23 +2,14 @@ import 'dart:math' as math;
 import 'package:rocksucks/player.dart';
 
 class Enemy extends Player {
-  Enemy(super.artboard, super.shader, super.gameRef) {
-    scale.y = -1; // Flip the enemy vertically
-  }
+  Enemy(super.artboard, super.shader, super.gameRef);
   @override
   void onLoad() {
     super.onLoad();
-    cycleShape();
-    // vSpeed = startSpeed;
-    // reset(); // Set initial vertical speed
+    // cycleShape();
+    fluttering.isActive = true;
+    // rolling.isActive = true;
   }
-
-  // void reset() {
-  //   // _currentIndex = 1; // Start with the "bag" animation
-  //   currentAnimation.isActive = true;
-  //   updatePerspectiveScale();
-  //   fluttering.isActive = true;
-  // }
 
   static const double startSpeed = 100.0;
   double hSpeed = 0.0;
@@ -36,34 +27,30 @@ class Enemy extends Player {
 
     // Apply scale while keeping vertical flip (-1)
     scale.x = scaleFactor;
-    scale.y = -scaleFactor; // Maintain vertical flip with new scale
+    scale.y = scaleFactor; // Maintain vertical flip with new scale
   }
 
   @override
   void update(double dt) {
     super.update(dt);
 
-    // Fall if bag
-    switch (currentAnimation.animationName) {
-      case 'closed scissors to bag':
-        hSpeed =
-            math.Random().nextDouble() * 100 - 50; // Random horizontal speed
-        // Update the position of the enemy to fall down
-        position.y += vSpeed * dt; // Adjust the speed as needed
-        // Add random horizontal speed
-        // Check if the enemy is out of bounds and reset its position
-        if (position.y > gameRef.size.y / 2) {
-          cycleShape();
-          rolling.isActive = true;
-          vSpeed = 0;
-        }
-        break;
-      case 'bag to stone':
-        hSpeed = 0.0;
-        position.y += vSpeed * dt; // Adjust the speed as needed
-        vSpeed += 1;
-        updatePerspectiveScale();
-        break;
+    if (rolling.isActive) {
+      hSpeed = 0.0;
+      position.y += vSpeed * dt; // Adjust the speed as needed
+      vSpeed += 1;
+      updatePerspectiveScale();
+    } else {
+      hSpeed = math.Random().nextDouble() * 100 - 50; // Random horizontal speed
+
+      // Update the position of the enemy to fall down
+      position.y += vSpeed * dt; // Adjust the speed as needed
+
+      // Check if the enemy is out of bounds and reset its position
+      if (position.y > gameRef.size.y / 2) {
+        fluttering.isActive = false;
+        rolling.isActive = true;
+        vSpeed = 0;
+      }
     }
 
     // Apply horizontal movement if there is any
