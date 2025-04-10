@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui';
 import 'package:rocksucks/player.dart';
 
 class Enemy extends Player {
@@ -65,5 +66,25 @@ class Enemy extends Player {
       gameRef.enemies.remove(this); // Remove from the list of enemies
       gameRef.remove(this); // Remove the enemy if it goes out of bounds
     }
+  }
+
+  @override
+  void render(Canvas canvas) {
+    // Draw shadow
+    final shadowPaint =
+        Paint()..color = const Color(0xFF000000).withOpacity(0.5);
+
+    var offset = Offset(44, 60);
+    if (fluttering.isActive) {
+      canvas.drawCircle(
+        offset + Offset(0, -position.y + gameRef.size.y / 2),
+        (baseSize / 2) * (0 + position.y / gameRef.size.y),
+        shadowPaint,
+      );
+    }
+    if (rolling.isActive) {
+      canvas.drawCircle(offset, baseSize / 4, shadowPaint);
+    }
+    super.render(canvas);
   }
 }
