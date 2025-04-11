@@ -37,6 +37,8 @@ class RockGame extends FlameGame {
   late ui.FragmentShader riveFragmentShader;
   late ui.FragmentShader backgroundShader;
   double time = 0;
+  double spanInterval = 1.0;
+  double lastSpawnTime = 0.0;
   List<Enemy> enemies = [];
   late RiveFile riveFile;
 
@@ -126,9 +128,22 @@ class RockGame extends FlameGame {
     // Update the time uniform in the shader
     time += dt;
 
-    if (enemies.isEmpty) {
-      // Add enemies if none exist
-      addEnemies(5, riveFile, riveFragmentShader, this);
+    // if (enemies.isEmpty) {
+    //   // Add enemies if none exist
+    //   addEnemies(5, riveFile, riveFragmentShader, this);
+    // }
+
+    // Check if it's time to add new enemies
+    lastSpawnTime += dt;
+    if (lastSpawnTime >= spanInterval) {
+      lastSpawnTime = 0.0; // Reset the spawn timer
+      addEnemies(1, riveFile, riveFragmentShader, this);
+
+      // Add random offset to the spawn interval
+      spanInterval =
+          1.0 +
+          Random().nextDouble() *
+              2.0; // Random interval between 1 and 3 seconds
     }
   }
 
@@ -161,9 +176,12 @@ class RockGame extends FlameGame {
         artboardName: 'Artboard',
       );
 
-      final w = 100.0; // Width of the enemy
+      final w = 150.0; // Width of the enemy
       final randomOffsetX =
-          random.nextDouble() * 50 - 25; // Random offset between -25 and 25
+          -size.x / 4 +
+          random.nextDouble() *
+              size.x /
+              2; // Random offset between 0 and screen width
       final randomOffsetY =
           random.nextDouble() * 50 - 25; // Random offset between -25 and 25
 

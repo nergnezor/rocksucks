@@ -76,7 +76,7 @@ class Enemy extends Player {
     final shadowPaint =
         Paint()..color = const Color(0xFF000000).withOpacity(0.5);
 
-    var offset = Offset(44, 60);
+    var offset = Offset(size.x / 2, size.y / 1.5);
     if (fluttering.isActive) {
       canvas.drawCircle(
         offset + Offset(0, -position.y + gameRef.size.y / 2),
