@@ -52,8 +52,8 @@ class Player extends RiveComponent with TapCallbacks {
 
   @override
   void render(Canvas canvas) {
-    // drawWithShader(canvas);
     super.render(canvas);
+    // drawWithShader(canvas);
   }
 
   void drawWithShader(ui.Canvas canvas) {

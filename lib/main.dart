@@ -173,7 +173,7 @@ class RockGame extends FlameGame {
             ..position = Vector2(
               (size.x - w) * (j + 1) / (count + 1) +
                   randomOffsetX, // Center horizontally with offset
-              w + randomOffsetY, // Align to the bottom with offset
+              -w - randomOffsetY, // Align to the bottom with offset
             );
 
       add(enemy);

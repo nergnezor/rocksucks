@@ -7,14 +7,15 @@ class Enemy extends Player {
   @override
   void onLoad() {
     super.onLoad();
+    vSpeed = startSpeed;
     // cycleShape();
     fluttering.isActive = true;
     // rolling.isActive = true;
   }
 
-  static const double startSpeed = 100.0;
-  double hSpeed = 0.0;
-  double vSpeed = startSpeed;
+  double startSpeed = 100.0 + math.Random().nextDouble() * 200.0;
+  late double vSpeed;
+  late double hSpeed = 0.0; // Horizontal speed
   double baseSize = 100.0; // Base size to scale from
 
   // Calculate scale factor based on y position
@@ -38,7 +39,8 @@ class Enemy extends Player {
     if (rolling.isActive) {
       hSpeed = 0.0;
       position.y += vSpeed * dt; // Adjust the speed as needed
-      vSpeed += 1;
+      vSpeed *= 1.02; // Slow down the enemy over time
+
       updatePerspectiveScale();
     } else {
       hSpeed = math.Random().nextDouble() * 100 - 50; // Random horizontal speed
@@ -50,7 +52,7 @@ class Enemy extends Player {
       if (position.y > gameRef.size.y / 2) {
         fluttering.isActive = false;
         rolling.isActive = true;
-        vSpeed = 0;
+        vSpeed = 10.0;
       }
     }
 
