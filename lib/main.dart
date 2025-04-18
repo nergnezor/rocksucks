@@ -188,6 +188,9 @@ class RockGame extends FlameGame {
       final enemy =
           Enemy(enemyArtboard, shader, gameRef)
             ..size = Vector2(w, w) // Set the size of the enemy
+            ..priority =
+                -time
+                    .toInt() // Set the priority based on time
             ..position = Vector2(
               (size.x - w) * (j + 1) / (count + 1) +
                   randomOffsetX, // Center horizontally with offset
@@ -195,7 +198,7 @@ class RockGame extends FlameGame {
             );
 
       add(enemy);
-      enemies.add(enemy); // Add the enemy to the list
+      // enemies.add(enemy); // Add the enemy to the list
     }
   }
 

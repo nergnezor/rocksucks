@@ -38,8 +38,8 @@ class Enemy extends Player {
 
     if (rolling.isActive) {
       hSpeed = 0.0;
-      position.y += vSpeed * dt; // Adjust the speed as needed
-      vSpeed *= 1.02; // Slow down the enemy over time
+      position.y += vSpeed * dt;
+      vSpeed *= 1.02; // Accelerate
 
       updatePerspectiveScale();
     } else {
@@ -65,7 +65,7 @@ class Enemy extends Player {
     if (position.y > gameRef.size.y) {
       position.y -= gameRef.size.y;
       // reset();
-      gameRef.enemies.remove(this); // Remove from the list of enemies
+      // gameRef.enemies.remove(this); // Remove from the list of enemies
       gameRef.remove(this); // Remove the enemy if it goes out of bounds
     }
   }
